@@ -32,12 +32,11 @@ ServiceFlow построен по классической layered-архите�
 
 Client → FastAPI Routers → Services → ORM → PostgreSQL
 
-```mermaid
 flowchart TB
-    Client[Client\n(Web / Bot)]
-    Routers[FastAPI Routers]
-    Services[Services\n(Business Logic)]
-    ORM[SQLAlchemy ORM]
+    Client["Client (Web or Bot)"]
+    Routers["FastAPI Routers"]
+    Services["Services (Business Logic)"]
+    ORM["SQLAlchemy ORM"]
     DB[(PostgreSQL)]
 
     Client --> Routers
@@ -45,10 +44,9 @@ flowchart TB
     Services --> ORM
     ORM --> DB
 
-    Auth[API Key Auth] --> Routers
-    Logs[Audit Logs] --> Services
-    Alembic[Alembic Migrations] --> DB
-```
+    Auth["API Key Auth"] --> Routers
+    Logs["Audit Logs"] --> Services
+    Alembic["Alembic Migrations"] --> DB
 
 
 
