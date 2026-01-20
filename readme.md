@@ -30,7 +30,31 @@ ServiceFlow построен по классической layered-архите�
 
 **Поток обработки запроса:**
 
-Client → FastAPI Routers → Services → Repositories → PostgreSQL
+Client → FastAPI Routers → Services → ORM → PostgreSQL
+
+flowchart TB
+    Client["Client<br/>(Web / Bot)"]
+
+    Routers["FastAPI Routers"]
+    Services["Services<br/>(Business Logic)"]
+    ORM["SQLAlchemy ORM"]
+    DB["PostgreSQL"]
+
+    Auth["API Key Auth"]
+    Logs["Audit Logs"]
+    Alembic["Alembic Migrations"]
+
+    Client --> Routers
+    Routers --> Services
+    Services --> ORM
+    ORM --> DB
+
+    Auth --> Routers
+    Logs --> Services
+    Alembic --> DB
+
+
+
 
 Дополнительно:
 - API-Key авторизация
@@ -38,7 +62,6 @@ Client → FastAPI Routers → Services → Repositories → PostgreSQL
 - Alembic-миграции
 - seed-инициализация данных
 
-[ЗДЕСЬ БУДЕТ КАРТИНКА: архитектура ServiceFlow]
 
 ---
 
