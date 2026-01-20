@@ -163,18 +163,6 @@ docker compose exec backend alembic upgrade head
 
 ---
 
-## 📡 Примеры использования API
-
-### Создание заявки
-
-POST /requests  
-X-API-Key: EMPLOYEE_API_KEY  
-
-{
-  "title": "Не работает VPN",
-  "description": "Соединение обрывается каждые 5 минут"
-}
-
 ### Изменение статуса заявки
 
 PATCH /requests/{id}/status  
