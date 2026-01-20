@@ -24,6 +24,7 @@
 docker compose up --build
 ```
 API: http://localhost:8000
+
 Swagger UI: http://localhost:8000/docs
 
 ---
