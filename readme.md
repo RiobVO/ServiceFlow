@@ -1,38 +1,85 @@
-# ServiceFlow
+# 🚀 ServiceFlow — Backend-сервис для управления заявками внутри компании
 
-ServiceFlow — internal service request and ticketing backend API.
-Production-style backend project built with FastAPI, PostgreSQL and Docker.
+**ServiceFlow** — производственный backend-сервис на FastAPI, построенный по принципам чистой архитектуры.  
+Предназначен для IT-поддержки, helpdesk-процессов, HR-заявок и любых внутренних тикет-систем компании.
 
-The system is designed for internal company usage: IT support, helpdesk,
-HR requests and operational service flows. The project demonstrates a clean
-backend architecture with role-based access, business logic, migrations
-and containerized deployment.
+Проект демонстрирует:
+- продакшен-подход к backend-архитектуре,
+- ролевую модель и контроль доступа,
+- строгую бизнес-логику статусов,
+- миграции базы данных и Docker-инфраструктуру,
+- тестирование и API-авторизацию.
 
-## Purpose
+---
 
-ServiceFlow can be used as:
-- Internal IT / HelpDesk system
-- HR request management backend
-- Operations service request API
-- Backend core for Telegram bots or web dashboards
+## 🧩 TL;DR (коротко)
 
-## Features
+- Создание и обработка сервисных заявок  
+- Роли: **ADMIN / AGENT / EMPLOYEE**  
+- Статусы: **NEW → IN_PROGRESS → DONE / CANCELED**  
+- Авторизация по API-ключам  
+- PostgreSQL + Alembic  
+- Docker Compose  
+- Автотесты (Pytest)
 
-- Service request creation and management
-- Request status workflow: NEW → IN_PROGRESS → DONE / CANCELED
-- Role-based access model:
-  - ADMIN — full access
-  - AGENT — request processing
-  - EMPLOYEE — create and view own requests
-- API key based authentication
-- Request audit logs
-- UUID / public_id identifiers
-- PostgreSQL database with Alembic migrations
-- Docker and Docker Compose support
-- Seed script for initial data setup
-- Automated tests
+---
 
-## Technology stack
+## 🏛 Архитектура проекта
+
+ServiceFlow построен по классической layered-архитектуре backend-приложения.
+
+**Поток обработки запроса:**
+
+Client → FastAPI Routers → Services → Repositories → PostgreSQL
+
+Дополнительно:
+- API-Key авторизация
+- аудит действий
+- Alembic-миграции
+- seed-инициализация данных
+
+[ЗДЕСЬ БУДЕТ КАРТИНКА: архитектура ServiceFlow]
+
+---
+
+## 📦 Возможности
+
+- управление сервисными заявками и их статусами
+- строгая бизнес-логика переходов статусов
+- ролевая модель доступа:
+  - **ADMIN** — полный контроль системы
+  - **AGENT** — обработка и закрытие заявок
+  - **EMPLOYEE** — создание и просмотр собственных заявок
+- авторизация по API-ключам (X-API-Key)
+- аудит и логирование действий пользователей
+- UUID / public_id для публичных маршрутов
+- миграции базы данных Alembic
+- Docker и Docker Compose
+- автоматические тесты (Pytest)
+
+---
+
+## 🧱 ERD (схема базы данных)
+
+Основные сущности:
+- users
+- requests
+- audit_logs
+- roles
+
+Связи:
+- users (1) → (N) requests
+- users (1) → (N) audit_logs
+
+Особенности:
+- UUID как primary key
+- public_id как внешний идентификатор
+
+[ЗДЕСЬ БУДЕТ КАРТИНКА: ERD базы данных]
+
+---
+
+## 🧰 Технологический стек
 
 - Python 3
 - FastAPI
@@ -42,93 +89,105 @@ ServiceFlow can be used as:
 - Docker / Docker Compose
 - Pytest
 
-## Project structure
+---
 
-- app/routers — API endpoints
-- app/schemas — Pydantic schemas
-- app/models — SQLAlchemy models
-- app/services — business logic layer
-- app/core — configuration, security, dependencies
-- alembic — database migrations
-- tests — automated tests
+## 🗂 Структура проекта
 
-## Installation and run (Docker)
+app/
+  core/          конфигурация, безопасность, зависимости  
+  routers/       HTTP-эндпоинты API  
+  schemas/       Pydantic-схемы  
+  models/        ORM-модели  
+  services/      бизнес-логика  
 
-Requirements:
+alembic/         миграции базы данных  
+tests/           автоматические тесты  
+
+[ЗДЕСЬ БУДЕТ КАРТИНКА: дерево структуры проекта]
+
+---
+
+## 🚀 Установка и запуск через Docker
+
+### Требования
 - Docker
 - Docker Compose
 
-1. Clone the repository
+### 1. Клонировать репозиторий
 
-   git clone https://github.com/RiobVO/ServiceFlow.git
-   cd ServiceFlow
+git clone https://github.com/RiobVO/ServiceFlow.git  
+cd ServiceFlow  
 
-2. Create environment file
+### 2. Создать файл окружения
 
-   copy .env.example .env
+copy .env.example .env
 
-3. Start the application
+### 3. Запустить сервис
 
-   docker compose up --build
+docker compose up --build
 
-4. Apply migrations (if needed)
+### 4. Применить миграции (если требуется)
 
-   docker compose exec backend alembic upgrade head
+docker compose exec backend alembic upgrade head
 
-After startup:
-- API available at: http://localhost:8000
+После запуска:
+- API: http://localhost:8000
 - Swagger UI: http://localhost:8000/docs
 
-## Environment variables
+---
 
-Environment variables are stored in .env file (do not commit it).
+## 🔑 Переменные окружения
 
-Main variables:
-- DATABASE_URL_POSTGRES — PostgreSQL connection string
-- API_KEY — API access key
-- ADMIN_BOOTSTRAP_KEY — initial admin creation key
+Основные переменные:
+- DATABASE_URL_POSTGRES
+- API_KEY
+- ADMIN_BOOTSTRAP_KEY
 
-See .env.example for reference.
+Примеры значений находятся в `.env.example`.
 
-## API usage example
+---
 
-Create a service request:
+## 📡 Примеры использования API
 
-POST /requests
-X-API-Key: EMPLOYEE_API_KEY
+### Создание заявки
 
-Request body:
+POST /requests  
+X-API-Key: EMPLOYEE_API_KEY  
+
 {
-  "title": "VPN is not working",
-  "description": "Connection drops every 5 minutes"
+  "title": "Не работает VPN",
+  "description": "Соединение обрывается каждые 5 минут"
 }
 
-Change request status:
+### Изменение статуса заявки
 
-PATCH /requests/{id}/status
-X-API-Key: AGENT_API_KEY
+PATCH /requests/{id}/status  
+X-API-Key: AGENT_API_KEY  
 
-Request body:
 {
   "status": "IN_PROGRESS"
 }
 
-## Tests
+---
 
-Run tests inside container:
+## 🧪 Тестирование
 
 docker compose exec backend pytest
 
-## Roadmap
+---
 
-- Unified error handling
-- Database healthcheck endpoint
-- API key hashing and reset endpoint
-- Extended audit logging
-- ERD and request flow diagrams
-- Admin panel or Telegram bot integration
+## 🛠 План развития
 
-## Author
+- централизованный обработчик ошибок
+- healthcheck сервиса
+- хэширование API-ключей и endpoint для их сброса
+- расширенный аудит действий
+- ERD и диаграммы бизнес-процессов
+- web-админка или интеграция с Telegram-ботом
+
+---
+
+## 👤 Автор
 
 Elyor Yusupov  
 GitHub: https://github.com/RiobVO
