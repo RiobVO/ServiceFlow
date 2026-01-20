@@ -1,38 +1,38 @@
 # ServiceFlow
 
-ServiceFlow — backend-сервис для управления внутренними заявками и тикетами.
-Production-style проект, реализованный на FastAPI, PostgreSQL и Docker.
+ServiceFlow — internal service request and ticketing backend API.
+Production-style backend project built with FastAPI, PostgreSQL and Docker.
 
-Система предназначена для внутреннего использования в компаниях:
-IT-поддержка, helpdesk, HR-заявки и операционные сервисные процессы.
-Проект демонстрирует чистую backend-архитектуру с ролевой моделью,
-бизнес-логикой, миграциями базы данных и контейнеризацией.
+The system is designed for internal company usage: IT support, helpdesk,
+HR requests and operational service flows. The project demonstrates a clean
+backend architecture with role-based access, business logic, migrations
+and containerized deployment.
 
-## Назначение проекта
+## Purpose
 
-ServiceFlow может использоваться как:
-- внутренний IT / HelpDesk сервис
-- backend для HR-заявок
-- система обработки операционных запросов
-- backend-ядро для Telegram-бота или web-панели
+ServiceFlow can be used as:
+- Internal IT / HelpDesk system
+- HR request management backend
+- Operations service request API
+- Backend core for Telegram bots or web dashboards
 
-## Возможности
+## Features
 
-- создание и управление сервисными заявками
-- бизнес-логика статусов заявок: NEW → IN_PROGRESS → DONE / CANCELED
-- ролевая модель доступа:
-  - ADMIN — полный доступ
-  - AGENT — обработка заявок
-  - EMPLOYEE — создание и просмотр своих заявок
-- авторизация по API-ключам
-- аудит и логирование действий по заявкам
-- UUID / public_id для безопасной работы с идентификаторами
-- PostgreSQL с миграциями Alembic
-- поддержка Docker и Docker Compose
-- seed-скрипт для начальной инициализации данных
-- автоматические тесты
+- Service request creation and management
+- Request status workflow: NEW → IN_PROGRESS → DONE / CANCELED
+- Role-based access model:
+  - ADMIN — full access
+  - AGENT — request processing
+  - EMPLOYEE — create and view own requests
+- API key based authentication
+- Request audit logs
+- UUID / public_id identifiers
+- PostgreSQL database with Alembic migrations
+- Docker and Docker Compose support
+- Seed script for initial data setup
+- Automated tests
 
-## Технологический стек
+## Technology stack
 
 - Python 3
 - FastAPI
@@ -42,90 +42,93 @@ ServiceFlow может использоваться как:
 - Docker / Docker Compose
 - Pytest
 
-## Структура проекта
+## Project structure
 
-- app/routers — HTTP-эндпоинты API
-- app/schemas — Pydantic-схемы
-- app/models — ORM-модели SQLAlchemy
-- app/services — бизнес-логика
-- app/core — конфигурация, безопасность, зависимости
-- alembic — миграции базы данных
-- tests — автоматические тесты
+- app/routers — API endpoints
+- app/schemas — Pydantic schemas
+- app/models — SQLAlchemy models
+- app/services — business logic layer
+- app/core — configuration, security, dependencies
+- alembic — database migrations
+- tests — automated tests
 
-## Установка и запуск (Docker)
+## Installation and run (Docker)
 
-Требования:
+Requirements:
 - Docker
 - Docker Compose
 
-1. Клонирование репозитория
+1. Clone the repository
 
    git clone https://github.com/RiobVO/ServiceFlow.git
    cd ServiceFlow
 
-2. Создание файла окружения
+2. Create environment file
 
    copy .env.example .env
 
-3. Запуск приложения
+3. Start the application
 
    docker compose up --build
 
-4. Применение миграций (при необходимости)
+4. Apply migrations (if needed)
 
    docker compose exec backend alembic upgrade head
 
-После запуска:
-- API доступно по адресу: http://localhost:8000
+After startup:
+- API available at: http://localhost:8000
 - Swagger UI: http://localhost:8000/docs
 
-## Переменные окружения
+## Environment variables
 
-Переменные окружения хранятся в файле .env (не коммитится в репозиторий).
+Environment variables are stored in .env file (do not commit it).
 
-Основные переменные:
-- DATABASE_URL_POSTGRES — строка подключения к PostgreSQL
-- API_KEY — ключ доступа к API
-- ADMIN_BOOTSTRAP_KEY — ключ для первоначального создания администратора
+Main variables:
+- DATABASE_URL_POSTGRES — PostgreSQL connection string
+- API_KEY — API access key
+- ADMIN_BOOTSTRAP_KEY — initial admin creation key
 
-Актуальные примеры смотрите в файле .env.example.
+See .env.example for reference.
 
-## Пример использования API
+## API usage example
 
-Создание заявки:
+Create a service request:
 
-POST /requests  
+POST /requests
 X-API-Key: EMPLOYEE_API_KEY
 
-Тело запроса:
+Request body:
 {
-  "title": "Не работает VPN",
-  "description": "Соединение обрывается каждые 5 минут"
+  "title": "VPN is not working",
+  "description": "Connection drops every 5 minutes"
 }
 
-Изменение статуса заявки:
+Change request status:
 
-PATCH /requests/{id}/status  
+PATCH /requests/{id}/status
 X-API-Key: AGENT_API_KEY
 
-Тело запроса:
+Request body:
 {
   "status": "IN_PROGRESS"
 }
 
-## Тестирование
+## Tests
 
-Запуск тестов внутри контейнера:
+Run tests inside container:
 
 docker compose exec backend pytest
 
-## План развития
+## Roadmap
 
-- единый обработчик ошибок
-- healthcheck с проверкой доступности базы данных
-- хэширование API-ключей и endpoint для их сброса
-- расширенное аудит-логирование
-- ERD и диаграммы бизнес-процессов
-- административная панель или интеграция с Telegram-ботом
+- Unified error handling
+- Database healthcheck endpoint
+- API key hashing and reset endpoint
+- Extended audit logging
+- ERD and request flow diagrams
+- Admin panel or Telegram bot integration
 
+## Author
 
+Elyor Yusupov  
+GitHub: https://github.com/RiobVO
