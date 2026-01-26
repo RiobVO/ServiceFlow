@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     API_KEY: str
     ADMIN_BOOTSTRAP_KEY: str
     API_KEY_HEADER: str = "X-API-Key"
+    CORS_ORIGINS: str = "http://localhost:5173"
 
     @property
     def db_url(self) -> str:

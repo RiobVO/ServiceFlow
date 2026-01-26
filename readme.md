@@ -227,3 +227,46 @@ docker compose exec backend pytest
 *   ERD и диаграммы бизнес‑процессов
 *   web‑админка или интеграция с Telegram‑ботом
 
+
+***
+
+## Frontend (React + Vite)
+
+Добавлен фронтенд на **React + TypeScript + Vite** с маршрутизацией через **React Router** и связкой через REST API.
+
+### Быстрый запуск фронтенда
+
+```bash
+cd frontend
+cp .env.example .env
+npm install
+npm run dev
+```
+
+По умолчанию фронтенд ожидает backend на <http://localhost:8000> и работает на <http://localhost:5173>.
+
+### Структура frontend
+
+```
+frontend/
+  src/
+    components/   # layout-компоненты
+    pages/        # страницы и маршруты
+    services/     # API-клиент
+    utils/        # хуки и утилиты
+    styles/       # глобальные стили
+```
+
+### Пример REST-запроса
+
+```bash
+curl -H "X-API-Key: <API_KEY>" http://localhost:8000/requests
+```
+
+### Пример использования API во фронтенде
+
+```ts
+import { api } from "./services/api";
+
+const data = await api.listRequests(apiKey, "?limit=5");
+```
