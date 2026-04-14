@@ -1,0 +1,108 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "serviceflow"
+version = "0.1.0"
+requires-python = ">=3.12"
+
+# ==============================================================================
+# Pytest
+# ==============================================================================
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["tests"]
+addopts = [
+    "-ra",
+    "--strict-markers",
+    "--strict-config",
+    "--import-mode=importlib",
+]
+markers = [
+    "unit: быстрые изолированные тесты без БД",
+    "integration: тесты с реальным Postgres (testcontainers)",
+    "contract: schemathesis-проверки против OpenAPI",
+]
+filterwarnings = [
+    "error",
+    "ignore::DeprecationWarning:sqlalchemy.*",
+    "ignore::DeprecationWarning:passlib.*",
+]
+
+# ==============================================================================
+# Coverage
+# ==============================================================================
+[tool.coverage.run]
+branch = true
+source = ["app"]
+omit = [
+    "app/workers/*",
+    "app/database/init_db.py",
+    "app/main.py",
+    "alembic/*",
+]
+
+[tool.coverage.report]
+precision = 1
+show_missing = true
+skip_covered = false
+exclude_also = [
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+    "pragma: no cover",
+    "\\.\\.\\.",
+]
+# Жёсткий порог — падает CI.
+fail_under = 85
+
+# ==============================================================================
+# Ruff
+# ==============================================================================
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = [
+    "E", "F", "W",      # pycodestyle + pyflakes
+    "I",                # isort
+    "B",                # flake8-bugbear
+    "UP",               # pyupgrade
+    "SIM",              # simplify
+    "S",                # security
+    "A",                # builtins shadowing
+    "RUF",
+]
+ignore = [
+    "S101",  # assert в тестах — ок
+    "S104",  # 0.0.0.0 bind — в Docker это норма
+    "B008",  # Depends(...) в аргументах — паттерн FastAPI
+    "SIM108",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S", "B", "E501"]
+"alembic/*" = ["E501", "I001"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
+
+# ==============================================================================
+# mypy
+# ==============================================================================
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_unused_configs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+no_implicit_optional = true
+show_error_codes = true
+
+[[tool.mypy.overrides]]
+module = ["prometheus_fastapi_instrumentator.*", "slowapi.*", "arq.*"]
+ignore_missing_imports = true
