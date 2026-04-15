@@ -1,40 +1,54 @@
 import { useEffect, useState } from 'react';
-import { api } from '../services/api';
 import { StatusBadge } from '../components/StatusBadge';
-import type { ServiceRequest, RequestStatus, User } from '../types';
+import {
+  Card,
+  Empty,
+  PageHeader,
+  Select,
+  formatTime,
+} from '../components/primitives';
+import { api } from '../services/api';
+import type { RequestStatus, ServiceRequest, User } from '../types';
 
-interface Props { apiKey: string; user: User | null; }
+interface Props {
+  apiKey: string;
+  user: User | null;
+}
 
 const STATUSES: { value: RequestStatus | ''; label: string }[] = [
-  { value: '',            label: 'Все' },
-  { value: 'NEW',         label: 'Новые' },
+  { value: '', label: 'Все' },
+  { value: 'NEW', label: 'Новые' },
   { value: 'IN_PROGRESS', label: 'В работе' },
-  { value: 'DONE',        label: 'Готово' },
-  { value: 'CANCELED',    label: 'Отменены' },
+  { value: 'DONE', label: 'Готово' },
+  { value: 'CANCELED', label: 'Отменены' },
 ];
 
 export function Requests({ apiKey, user }: Props) {
   const [requests, setRequests] = useState<ServiceRequest[]>([]);
-  const [filter, setFilter]     = useState<RequestStatus | ''>('');
-  const [loading, setLoading]   = useState(true);
+  const [filter, setFilter] = useState<RequestStatus | ''>('');
+  const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState<number | null>(null);
 
   const load = () => {
     setLoading(true);
     const q = filter ? { request_status: filter } : {};
-    api.listRequests(apiKey, q)
+    api
+      .listRequests(apiKey, q)
       .then((page) => setRequests(page.items))
       .catch(() => {})
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { if (apiKey) load(); }, [apiKey, filter]);
+  useEffect(() => {
+    if (apiKey) load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [apiKey, filter]);
 
   const changeStatus = async (r: ServiceRequest, status: RequestStatus) => {
     setUpdating(r.id);
     try {
       const updated = await api.updateStatus(apiKey, r.id, { status });
-      setRequests(prev => prev.map(x => x.id === r.id ? updated : x));
+      setRequests((prev) => prev.map((x) => (x.id === r.id ? updated : x)));
     } finally {
       setUpdating(null);
     }
@@ -43,79 +57,75 @@ export function Requests({ apiKey, user }: Props) {
   const canChange = user?.role === 'admin' || user?.role === 'agent';
 
   return (
-    <div className="page fade-in">
-      <div className="page-header">
-        <div>
-          <div className="page-title">Все заявки</div>
-          <div className="page-subtitle">{requests.length} заявок</div>
-        </div>
-      </div>
+    <div className="sf-page">
+      <PageHeader title="Все заявки" subtitle={`${requests.length} заявок`} />
 
-      <div className="filter-bar">
-        {STATUSES.map(s => (
+      <div className="sf-chips">
+        {STATUSES.map((s) => (
           <button
             key={s.value}
-            className={`filter-btn${filter === s.value ? ' active' : ''}`}
+            type="button"
             onClick={() => setFilter(s.value)}
+            className={`sf-chip ${filter === s.value ? 'is-active' : ''}`}
           >
             {s.label}
           </button>
         ))}
       </div>
 
-      <div className="card">
+      <Card>
         {loading ? (
-          <div className="empty"><div className="text-muted">Загрузка…</div></div>
+          <Empty>Загрузка…</Empty>
         ) : requests.length === 0 ? (
-          <div className="empty">
-            <div className="empty-icon">◈</div>
-            Заявок нет
-          </div>
+          <Empty>Ничего не найдено.</Empty>
         ) : (
-          <table>
+          <table className="sf-table">
             <thead>
               <tr>
-                <th>ID</th>
+                <th style={{ width: 76 }}>ID</th>
                 <th>Название</th>
-                <th>Статус</th>
-                <th>Создана</th>
-                {canChange && <th>Действие</th>}
+                <th style={{ width: 130 }}>Статус</th>
+                <th style={{ width: 120 }}>Создана</th>
+                {canChange ? <th style={{ width: 160 }}>Действие</th> : null}
               </tr>
             </thead>
             <tbody>
-              {requests.map(r => (
+              {requests.map((r) => (
                 <tr key={r.id}>
-                  <td className="td-mono">#{r.id}</td>
+                  <td className="sf-td--mono">#{r.id}</td>
                   <td>
-                    <div className="td-bold">{r.title}</div>
-                    {r.description && <div className="text-muted text-sm">{r.description}</div>}
+                    <div className="sf-row-title">{r.title}</div>
+                    {r.description ? (
+                      <div className="sf-row-sub">{r.description}</div>
+                    ) : null}
                   </td>
-                  <td><StatusBadge status={r.status} /></td>
-                  <td className="text-muted text-sm">
-                    {new Date(r.created_at).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                  <td>
+                    <StatusBadge status={r.status} />
                   </td>
-                  {canChange && (
+                  <td className="sf-td--muted">{formatTime(r.created_at)}</td>
+                  {canChange ? (
                     <td>
-                      <select
-                        className="input"
-                        style={{ padding: '5px 10px', fontSize: 12 }}
+                      <Select
                         value={r.status}
                         disabled={updating === r.id}
-                        onChange={e => changeStatus(r, e.target.value as RequestStatus)}
+                        onChange={(e) =>
+                          changeStatus(r, e.target.value as RequestStatus)
+                        }
+                        style={{ padding: '5px 10px', fontSize: 12.5 }}
                       >
                         <option value="NEW">Новая</option>
                         <option value="IN_PROGRESS">В работе</option>
                         <option value="DONE">Готово</option>
                         <option value="CANCELED">Отменена</option>
-                      </select>
+                      </Select>
                     </td>
-                  )}
+                  ) : null}
                 </tr>
               ))}
             </tbody>
           </table>
         )}
-      </div>
+      </Card>
     </div>
   );
 }
