@@ -29,6 +29,7 @@ def _req(rid: int, *, status=RequestStatus.NEW, created_by=1, assignee=None):
 
 # ---------- can_view ----------
 
+
 def test_admin_can_view_any():
     RequestPolicy.can_view(_user(10, UserRole.ADMIN), _req(1, created_by=5))
 
@@ -48,20 +49,17 @@ def test_employee_blocked_from_foreign():
 
 # ---------- can_update_status ----------
 
+
 def test_agent_cannot_assign_others():
     payload = RequestStatusUpdate(status=RequestStatus.IN_PROGRESS, assignee_id=77)
     with pytest.raises(PermissionDenied) as err:
-        RequestPolicy.can_update_status(
-            _user(10, UserRole.AGENT), _req(1, assignee=None), payload
-        )
+        RequestPolicy.can_update_status(_user(10, UserRole.AGENT), _req(1, assignee=None), payload)
     assert err.value.code == "agent_cannot_assign_others"
 
 
 def test_agent_can_take_from_queue():
     payload = RequestStatusUpdate(status=RequestStatus.IN_PROGRESS, assignee_id=10)
-    RequestPolicy.can_update_status(
-        _user(10, UserRole.AGENT), _req(1, assignee=None), payload
-    )
+    RequestPolicy.can_update_status(_user(10, UserRole.AGENT), _req(1, assignee=None), payload)
 
 
 def test_employee_can_only_cancel_own_new():

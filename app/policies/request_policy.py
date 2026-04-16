@@ -58,9 +58,7 @@ class RequestPolicy:
             return
 
 
-def _check_agent_update(
-    user: User, request: ServiceRequest, payload: RequestStatusUpdate
-) -> None:
+def _check_agent_update(user: User, request: ServiceRequest, payload: RequestStatusUpdate) -> None:
     # Терминальные статусы AGENT менять не может.
     if request.status in {RequestStatus.DONE, RequestStatus.CANCELED}:
         raise PermissionDenied(
@@ -75,9 +73,7 @@ def _check_agent_update(
             code="agent_cannot_assign_others",
         )
 
-    is_taking_from_queue = (
-        request.assigned_to_user_id is None and payload.assignee_id == user.id
-    )
+    is_taking_from_queue = request.assigned_to_user_id is None and payload.assignee_id == user.id
     is_assigned_to_me = request.assigned_to_user_id == user.id
 
     if not is_assigned_to_me and not is_taking_from_queue:

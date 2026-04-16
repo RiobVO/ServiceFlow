@@ -10,7 +10,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Protocol, runtime_checkable
 
-from app.core.enums import RequestStatus, UserRole
+from app.core.enums import RequestStatus
 from app.models.request import ServiceRequest
 from app.models.request_log import RequestLog
 from app.models.user import User
@@ -41,8 +41,12 @@ class RequestRepository(Protocol):
         limit: int = 50,
         offset: int = 0,
     ) -> list[ServiceRequest]: ...
-    def list_by_creator(self, creator_id: int, *, limit: int, offset: int) -> list[ServiceRequest]: ...
-    def list_by_assignee(self, assignee_id: int, *, limit: int, offset: int) -> list[ServiceRequest]: ...
+    def list_by_creator(
+        self, creator_id: int, *, limit: int, offset: int
+    ) -> list[ServiceRequest]: ...
+    def list_by_assignee(
+        self, assignee_id: int, *, limit: int, offset: int
+    ) -> list[ServiceRequest]: ...
     def list_queue(self, *, limit: int, offset: int) -> list[ServiceRequest]: ...
     def add(self, request: ServiceRequest) -> ServiceRequest: ...
     def count(

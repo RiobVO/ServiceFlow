@@ -12,8 +12,17 @@ import os
 from collections.abc import Iterator
 from uuid import uuid4
 
-import pytest
+# Ставим дефолты ДО первого импорта app.* — валидаторы Settings требуют их.
+# Для unit-тестов реальные значения не используются, только пройдёт валидация.
+os.environ.setdefault(
+    "DATABASE_URL_POSTGRES",
+    "postgresql+psycopg://postgres:postgres@localhost:5432/serviceflow_test",
+)
+os.environ.setdefault("ADMIN_BOOTSTRAP_KEY", "unit_test_bootstrap_key_long_enough_32ch")
+os.environ.setdefault("ENV", "dev")
+os.environ.setdefault("LOG_JSON", "0")
 
+import pytest
 
 # --------------------- общие утилиты ---------------------
 

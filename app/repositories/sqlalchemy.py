@@ -85,9 +85,7 @@ class SqlAlchemyRequestRepository:
         stmt = stmt.order_by(ServiceRequest.created_at.desc()).offset(offset).limit(limit)
         return list(self._s.scalars(stmt).all())
 
-    def list_by_creator(
-        self, creator_id: int, *, limit: int, offset: int
-    ) -> list[ServiceRequest]:
+    def list_by_creator(self, creator_id: int, *, limit: int, offset: int) -> list[ServiceRequest]:
         stmt = (
             select(ServiceRequest)
             .where(ServiceRequest.created_by_user_id == creator_id)

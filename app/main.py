@@ -24,12 +24,11 @@ from app.core.metrics import build_instrumentator
 from app.core.middleware import RequestContextMiddleware, SecurityHeadersMiddleware
 from app.core.rate_limit import limiter, rate_limit_exceeded_handler
 from app.core.tracing import setup_tracing
-from app.database.session import engine
 from app.database.init_db import init_db
+from app.database.session import engine
 from app.routers.health import router as health_router
 from app.routers.requests import router as requests_router
 from app.routers.users import router as users_router
-
 
 configure_logging()
 _log = get_logger("startup")
@@ -86,7 +85,15 @@ app.add_middleware(
     allow_origins=settings.cors_origins_list or ["*"],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
-    allow_headers=["Authorization", "Content-Type", "X-API-Key", "X-Request-ID", "X-Bootstrap-Key", "Idempotency-Key", "If-Match"],
+    allow_headers=[
+        "Authorization",
+        "Content-Type",
+        "X-API-Key",
+        "X-Request-ID",
+        "X-Bootstrap-Key",
+        "Idempotency-Key",
+        "If-Match",
+    ],
     expose_headers=["X-Request-ID", "ETag"],
     max_age=600,
 )
