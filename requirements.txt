@@ -1,0 +1,32 @@
+fastapi==0.115.6
+uvicorn[standard]==0.32.1
+SQLAlchemy==2.0.36
+python-dotenv==1.0.1
+pydantic==2.10.3
+pydantic-settings
+email-validator==2.2.0
+psycopg[binary]
+alembic==1.18.0
+structlog==24.4.0
+argon2-cffi==23.1.0
+slowapi==0.1.9
+
+# Observability
+prometheus-fastapi-instrumentator==7.0.0
+opentelemetry-api==1.27.0
+opentelemetry-sdk==1.27.0
+opentelemetry-exporter-otlp-proto-http==1.27.0
+opentelemetry-instrumentation-fastapi==0.48b0
+opentelemetry-instrumentation-sqlalchemy==0.48b0
+
+# Async jobs
+arq==0.26.1
+redis==5.2.0
+
+# Tests
+pytest==8.3.3
+pytest-asyncio==0.24.0
+pytest-cov==5.0.0
+httpx==0.27.2
+testcontainers[postgres]==4.8.2
+schemathesis==3.36.3
