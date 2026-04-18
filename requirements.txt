@@ -21,7 +21,7 @@ opentelemetry-instrumentation-sqlalchemy==0.48b0
 
 # Async jobs
 arq==0.26.1
-redis==5.2.0
+redis==7.4.0
 
 # Tests
 pytest==8.3.3
