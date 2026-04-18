@@ -1,77 +1,79 @@
 import { NavLink } from 'react-router-dom';
+import {
+  Inbox,
+  LayoutGrid,
+  ListChecks,
+  LogOut,
+  Users as UsersIcon,
+  type LucideIcon,
+} from 'lucide-react';
 import type { User } from '../types';
+import { Avatar, BrandMark } from './primitives';
 
-interface Props {
-  user: User | null;
-  onLogout: () => void;
+interface NavItem {
+  to: string;
+  icon: LucideIcon;
+  label: string;
 }
 
-const roleNav: Record<string, { to: string; icon: string; label: string }[]> = {
+const ROLE_NAV: Record<User['role'], NavItem[]> = {
   admin: [
-    { to: '/',         icon: '▦', label: 'Обзор' },
-    { to: '/requests', icon: '◈', label: 'Все заявки' },
-    { to: '/queue',    icon: '◎', label: 'Очередь' },
-    { to: '/users',    icon: '◉', label: 'Пользователи' },
+    { to: '/', icon: LayoutGrid, label: 'Обзор' },
+    { to: '/requests', icon: ListChecks, label: 'Все заявки' },
+    { to: '/queue', icon: Inbox, label: 'Очередь' },
+    { to: '/users', icon: UsersIcon, label: 'Пользователи' },
   ],
   agent: [
-    { to: '/',         icon: '▦', label: 'Обзор' },
-    { to: '/requests', icon: '◈', label: 'Все заявки' },
-    { to: '/queue',    icon: '◎', label: 'Очередь' },
+    { to: '/', icon: LayoutGrid, label: 'Обзор' },
+    { to: '/requests', icon: ListChecks, label: 'Все заявки' },
+    { to: '/queue', icon: Inbox, label: 'Очередь' },
   ],
   employee: [
-    { to: '/',          icon: '▦', label: 'Обзор' },
-    { to: '/my',        icon: '◈', label: 'Мои заявки' },
+    { to: '/', icon: LayoutGrid, label: 'Обзор' },
+    { to: '/my', icon: ListChecks, label: 'Мои заявки' },
   ],
 };
 
-export function Sidebar({ user, onLogout }: Props) {
-  const links = user ? (roleNav[user.role] ?? roleNav.employee) : [];
-  const initials = user?.full_name.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase() ?? '?';
+export function Sidebar({ user, onLogout }: { user: User; onLogout: () => void }) {
+  const links = ROLE_NAV[user.role] ?? ROLE_NAV.employee;
 
   return (
-    <aside className="sidebar">
-      <div className="sidebar-logo">
-        <div className="sidebar-logo-icon">⚡</div>
-        <span className="sidebar-logo-text">ServiceFlow</span>
+    <aside className="sf-sidebar">
+      <div className="sf-sidebar__brand">
+        <BrandMark size={22} />
+        <span className="sf-sidebar__brand-name">ServiceFlow</span>
       </div>
 
-      <span className="nav-label">Навигация</span>
+      <div className="sf-sidebar__section">Навигация</div>
+      <nav className="sf-sidebar__nav">
+        {links.map((link) => {
+          const Icon = link.icon;
+          return (
+            <NavLink
+              key={link.to}
+              to={link.to}
+              end={link.to === '/'}
+              className={({ isActive }) => `sf-nav-row ${isActive ? 'is-active' : ''}`}
+            >
+              <Icon size={18} strokeWidth={1.5} />
+              {link.label}
+            </NavLink>
+          );
+        })}
+      </nav>
 
-      {links.map(l => (
-        <NavLink
-          key={l.to}
-          to={l.to}
-          end={l.to === '/'}
-          className={({ isActive }) => `nav-link${isActive ? ' active' : ''}`}
-        >
-          <span className="icon">{l.icon}</span>
-          {l.label}
-        </NavLink>
-      ))}
-
-      <div className="sidebar-bottom">
-        {user ? (
-          <>
-            <div className="user-card">
-              <div className="user-avatar">{initials}</div>
-              <div className="user-info">
-                <div className="user-name">{user.full_name}</div>
-                <div className="user-role">{user.role}</div>
-              </div>
-            </div>
-            <button className="nav-link" style={{ marginTop: 8, color: 'var(--red)' }} onClick={onLogout}>
-              <span className="icon">⏏</span> Выйти
-            </button>
-          </>
-        ) : (
-          <div className="user-card">
-            <div className="user-avatar" style={{ background: 'var(--bg-3)' }}>?</div>
-            <div className="user-info">
-              <div className="user-name">Не подключён</div>
-              <div className="user-role">—</div>
-            </div>
+      <div className="sf-sidebar__footer">
+        <div className="sf-sidebar__user">
+          <Avatar name={user.full_name} size={30} />
+          <div style={{ overflow: 'hidden', flex: 1 }}>
+            <div className="sf-sidebar__user-name">{user.full_name}</div>
+            <div className="sf-sidebar__user-role">{user.role}</div>
           </div>
-        )}
+        </div>
+        <button type="button" className="sf-nav-row" onClick={onLogout}>
+          <LogOut size={18} strokeWidth={1.5} />
+          Выйти
+        </button>
       </div>
     </aside>
   );

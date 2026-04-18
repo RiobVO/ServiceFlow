@@ -1,42 +1,66 @@
 import { useEffect, useState } from 'react';
-import { api } from '../services/api';
+import { Check, Plus } from 'lucide-react';
 import { RoleBadge } from '../components/StatusBadge';
+import {
+  Avatar,
+  Button,
+  Card,
+  ErrorMessage,
+  Field,
+  Input,
+  PageHeader,
+  Select,
+} from '../components/primitives';
+import { api, ApiError } from '../services/api';
 import type { User, UserRole } from '../types';
 
-interface Props { apiKey: string; }
+interface Props {
+  apiKey: string;
+}
 
 export function Users({ apiKey }: Props) {
-  const [users, setUsers]     = useState<User[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
-  const [name, setName]       = useState('');
-  const [email, setEmail]     = useState('');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
   const [creating, setCreating] = useState(false);
-  const [error, setError]     = useState('');
+  const [error, setError] = useState<string | null>(null);
   const [newUserKey, setNewUserKey] = useState<string | null>(null);
 
   const load = () => {
     setLoading(true);
-    api.listUsers(apiKey)
+    api
+      .listUsers(apiKey)
       .then((page) => setUsers(page.items))
       .catch(() => {})
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { if (apiKey) load(); }, [apiKey]);
+  useEffect(() => {
+    if (apiKey) load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [apiKey]);
 
   const createUser = async () => {
-    if (!name.trim() || !email.trim()) { setError('Заполните все поля'); return; }
+    if (!name.trim() || !email.trim()) {
+      setError('Заполните все поля.');
+      return;
+    }
     setCreating(true);
-    setError('');
+    setError(null);
     setNewUserKey(null);
     try {
-      const u = await api.createUser(apiKey, { full_name: name.trim(), email: email.trim() });
-      setUsers(prev => [...prev, u]);
-      setNewUserKey(u.api_key ?? null);
+      const u = await api.createUser(apiKey, {
+        full_name: name.trim(),
+        email: email.trim(),
+      });
+      setUsers((prev) => [...prev, u]);
+      setNewUserKey(u.api_key);
       setName('');
       setEmail('');
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Ошибка');
+    } catch (err) {
+      const msg = err instanceof ApiError ? err.problem.detail : 'Не удалось создать пользователя.';
+      setError(msg);
     } finally {
       setCreating(false);
     }
@@ -45,90 +69,141 @@ export function Users({ apiKey }: Props) {
   const changeRole = async (userId: number, role: UserRole) => {
     try {
       const updated = await api.updateUserRole(apiKey, userId, role);
-      setUsers(prev => prev.map(u => u.id === userId ? updated : u));
-    } catch {}
+      setUsers((prev) => prev.map((u) => (u.id === userId ? updated : u)));
+    } catch {
+      /* no-op */
+    }
   };
 
   return (
-    <div className="page fade-in">
-      <div className="page-header">
-        <div>
-          <div className="page-title">Пользователи</div>
-          <div className="page-subtitle">{users.length} в системе</div>
-        </div>
-      </div>
+    <div className="sf-page">
+      <PageHeader title="Пользователи" subtitle={`${users.length} в системе`} />
 
-      <div className="panel">
-        <div className="panel-title">Добавить пользователя</div>
-        <div className="row">
-          <div className="form-group">
-            <label className="form-label">Имя</label>
-            <input className="input" placeholder="Иван Иванов" value={name} onChange={e => setName(e.target.value)} />
+      <Card elevated>
+        <div className="sf-card__body">
+          <div
+            className="sf-serif"
+            style={{
+              fontSize: 18,
+              fontWeight: 500,
+              color: 'var(--sf-ink)',
+              letterSpacing: '-0.005em',
+              marginBottom: 14,
+            }}
+          >
+            Добавить пользователя
           </div>
-          <div className="form-group">
-            <label className="form-label">Email</label>
-            <input className="input" type="email" placeholder="user@company.com" value={email} onChange={e => setEmail(e.target.value)} />
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr auto',
+              gap: 12,
+              alignItems: 'flex-end',
+            }}
+          >
+            <Field label="Имя">
+              <Input
+                placeholder="Иван Иванов"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
+            </Field>
+            <Field label="Email">
+              <Input
+                type="email"
+                placeholder="user@company.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
+            </Field>
+            <Button icon={Plus} onClick={createUser} disabled={creating}>
+              {creating ? '…' : 'Добавить'}
+            </Button>
           </div>
-          <div style={{ display: 'flex', alignItems: 'flex-end' }}>
-            <button className="btn btn-primary" onClick={createUser} disabled={creating}>
-              {creating ? '…' : '+ Добавить'}
-            </button>
-          </div>
+          {error ? (
+            <div style={{ marginTop: 12 }}>
+              <ErrorMessage>{error}</ErrorMessage>
+            </div>
+          ) : null}
+          {newUserKey ? (
+            <div className="sf-callout sf-callout--success">
+              <div className="sf-callout__title">
+                <Check size={14} strokeWidth={1.5} />
+                Пользователь создан. Сохраните API-ключ — больше он не покажется.
+              </div>
+              <code className="sf-callout__code">{newUserKey}</code>
+            </div>
+          ) : null}
         </div>
-        {error && <div className="error-msg">⚠ {error}</div>}
-        {newUserKey && (
-          <div style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: 8, padding: '12px 16px' }}>
-            <div style={{ fontSize: 12, color: 'var(--green)', fontWeight: 600, marginBottom: 6 }}>✓ Пользователь создан. Сохрани API-ключ:</div>
-            <code style={{ fontFamily: 'JetBrains Mono, monospace', fontSize: 12, color: 'var(--text)', wordBreak: 'break-all' }}>{newUserKey}</code>
-          </div>
-        )}
-      </div>
+      </Card>
 
-      <div className="card">
+      <Card>
         {loading ? (
-          <div className="empty"><div className="text-muted">Загрузка…</div></div>
+          <div className="sf-empty">
+            <div className="sf-empty__text">Загрузка…</div>
+          </div>
         ) : (
-          <table>
+          <table className="sf-table">
             <thead>
               <tr>
-                <th>ID</th>
+                <th style={{ width: 60 }}>ID</th>
                 <th>Имя</th>
                 <th>Email</th>
-                <th>Роль</th>
-                <th>Статус</th>
-                <th>Изменить роль</th>
+                <th style={{ width: 110 }}>Роль</th>
+                <th style={{ width: 110 }}>Статус</th>
+                <th style={{ width: 140 }}>Изменить роль</th>
               </tr>
             </thead>
             <tbody>
-              {users.map(u => (
+              {users.map((u) => (
                 <tr key={u.id}>
-                  <td className="td-mono">#{u.id}</td>
-                  <td className="td-bold">{u.full_name}</td>
-                  <td className="text-muted text-sm">{u.email}</td>
-                  <td><RoleBadge role={u.role} /></td>
+                  <td className="sf-td--mono">#{u.id}</td>
                   <td>
-                    <span className={`badge ${u.is_active ? 'badge-done' : 'badge-canceled'}`}>
+                    <div
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
+                      }}
+                    >
+                      <Avatar name={u.full_name} size={26} />
+                      <span className="sf-row-title">{u.full_name}</span>
+                    </div>
+                  </td>
+                  <td className="sf-td--muted">{u.email}</td>
+                  <td>
+                    <RoleBadge role={u.role} />
+                  </td>
+                  <td>
+                    <span
+                      className={`sf-badge ${
+                        u.is_active
+                          ? 'sf-badge--status-done'
+                          : 'sf-badge--status-canceled'
+                      }`}
+                    >
                       {u.is_active ? 'Активен' : 'Отключён'}
                     </span>
                   </td>
                   <td>
-                    <select
-                      className="input"
-                      style={{ padding: '5px 10px', fontSize: 12 }}
+                    <Select
                       value={u.role}
-                      onChange={e => changeRole(u.id, e.target.value as UserRole)}
+                      onChange={(e) =>
+                        changeRole(u.id, e.target.value as UserRole)
+                      }
+                      style={{ padding: '5px 10px', fontSize: 12.5 }}
                     >
                       <option value="admin">Admin</option>
                       <option value="agent">Agent</option>
                       <option value="employee">Employee</option>
-                    </select>
+                    </Select>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         )}
-      </div>
+      </Card>
     </div>
   );
 }
