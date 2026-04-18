@@ -76,9 +76,7 @@ def validate_transition(req: TransitionRequest) -> None:
 
     if target == RequestStatus.IN_PROGRESS:
         final_assignee = (
-            req.new_assignee_id
-            if req.new_assignee_id is not None
-            else req.current_assignee_id
+            req.new_assignee_id if req.new_assignee_id is not None else req.current_assignee_id
         )
         if final_assignee is None:
             raise InProgressRequiresAssignee()

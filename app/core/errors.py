@@ -77,6 +77,7 @@ def _instance_of(request: Request) -> str:
 # Доменные ошибки
 # ------------------------------------------------------------------
 
+
 async def domain_exception_handler(request: Request, exc: DomainError) -> JSONResponse:
     return _problem_response(
         status_code=exc.http_status,
@@ -90,6 +91,7 @@ async def domain_exception_handler(request: Request, exc: DomainError) -> JSONRe
 # ------------------------------------------------------------------
 # Pydantic 422
 # ------------------------------------------------------------------
+
 
 def _cleanup_pydantic_errors(errors: list[dict[str, Any]]) -> list[dict[str, Any]]:
     cleaned: list[dict[str, Any]] = []
@@ -119,13 +121,16 @@ async def validation_exception_handler(
 # HTTPException (пусть остаётся — используется FastAPI/Starlette внутри)
 # ------------------------------------------------------------------
 
+
 async def http_exception_handler(request: Request, exc: HTTPException) -> JSONResponse:
     detail = exc.detail
     headers = getattr(exc, "headers", None)
 
     if isinstance(detail, dict):
         code = str(detail.get("code", detail.get("error", "http_error")))
-        message = str(detail.get("message") or detail.get("detail") or HTTPStatus(exc.status_code).phrase)
+        message = str(
+            detail.get("message") or detail.get("detail") or HTTPStatus(exc.status_code).phrase
+        )
         errors = detail.get("errors") or detail.get("details")
     elif isinstance(detail, str):
         code = detail if detail and " " not in detail else "http_error"
@@ -149,6 +154,7 @@ async def http_exception_handler(request: Request, exc: HTTPException) -> JSONRe
 # ------------------------------------------------------------------
 # Неперехваченные ошибки — 500
 # ------------------------------------------------------------------
+
 
 async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
     # Не утекаем стектрейс в ответ — это задача логгера.

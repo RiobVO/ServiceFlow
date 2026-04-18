@@ -1,6 +1,7 @@
 from datetime import datetime
 
-from sqlalchemy import Boolean, DateTime, Enum as SAEnum, String
+from sqlalchemy import Boolean, DateTime, String
+from sqlalchemy import Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.enums import UserRole
@@ -24,9 +25,7 @@ class User(Base):
     api_key_last4: Mapped[str] = mapped_column(String(8), nullable=False)
     api_key_hash: Mapped[str] = mapped_column(String(255), nullable=False)
 
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime, default=datetime.utcnow, nullable=False
-    )
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
 
     created_requests = relationship(
         "ServiceRequest",

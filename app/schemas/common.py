@@ -21,7 +21,7 @@ class Page(BaseModel, Generic[T]):
     has_next: bool = Field(..., description="Есть ли следующая страница.")
 
     @classmethod
-    def of(cls, items: List[T], *, total: int, limit: int, offset: int) -> "Page[T]":
+    def of(cls, items: List[T], *, total: int, limit: int, offset: int) -> Page[T]:
         return cls(
             items=items,
             total=total,
