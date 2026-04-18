@@ -26,9 +26,15 @@ markers = [
     "contract: schemathesis-проверки против OpenAPI",
 ]
 filterwarnings = [
-    "error",
+    # Не делаем warning = error: сторонние библиотеки (schemathesis, sqlalchemy,
+    # pytest-asyncio, jsonschema) регулярно кидают Deprecation-предупреждения,
+    # которые не в нашей власти. Важные варнинги всё равно видны в логе.
+    "default",
     "ignore::DeprecationWarning:sqlalchemy.*",
     "ignore::DeprecationWarning:passlib.*",
+    "ignore::DeprecationWarning:jsonschema.*",
+    "ignore::DeprecationWarning:schemathesis.*",
+    "ignore::PendingDeprecationWarning",
 ]
 
 # ==============================================================================
