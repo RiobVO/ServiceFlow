@@ -1,0 +1,89 @@
+services:
+
+  db:
+    image: postgres:16
+    container_name: sr_postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: service_request
+    ports:
+      - "5432:5432"
+    volumes:
+      - sr_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d service_request"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: always
+
+  backend:
+    build: .
+    container_name: sr_backend
+    env_file:
+      - .env.docker
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    # Миграции применяем автоматически при старте, затем поднимаем uvicorn.
+    # sh -c пригоден, т.к. /bin/sh есть в slim-образе.
+    command:
+      - /bin/sh
+      - -c
+      - "alembic upgrade head && exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --proxy-headers --forwarded-allow-ips=*"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request,sys;sys.exit(0) if urllib.request.urlopen('http://localhost:8000/health/ready',timeout=2).status==200 else sys.exit(1)\""]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: always
+
+  redis:
+    image: redis:7-alpine
+    container_name: sr_redis
+    command: ["redis-server", "--save", "", "--appendonly", "no"]
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: always
+
+  worker:
+    build: .
+    container_name: sr_worker
+    env_file:
+      - .env.docker
+    environment:
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      # Ждём, пока backend станет healthy — значит миграции уже накатились.
+      backend:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    command: ["arq", "app.workers.arq_worker.WorkerSettings"]
+    restart: always
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: sr_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      db:
+        condition: service_healthy
+    profiles:
+      - dev
+
+volumes:
+  sr_pgdata:
