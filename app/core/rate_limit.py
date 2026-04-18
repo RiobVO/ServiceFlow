@@ -36,9 +36,7 @@ limiter = Limiter(
 )
 
 
-async def rate_limit_exceeded_handler(
-    request: Request, exc: RateLimitExceeded
-) -> JSONResponse:
+async def rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded) -> JSONResponse:
     """Превращает RateLimitExceeded в Problem Details 429."""
     _log.warning(
         "rate_limit_exceeded",

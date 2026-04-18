@@ -124,16 +124,12 @@ class RequestService:
         )
         return self._page(items, total, limit, offset)
 
-    def list_for_creator(
-        self, creator_id: int, *, limit: int, offset: int
-    ) -> Page[RequestRead]:
+    def list_for_creator(self, creator_id: int, *, limit: int, offset: int) -> Page[RequestRead]:
         items = self._uow.requests.list_by_creator(creator_id, limit=limit, offset=offset)
         total = self._uow.requests.count_by_creator(creator_id)
         return self._page(items, total, limit, offset)
 
-    def list_for_assignee(
-        self, assignee_id: int, *, limit: int, offset: int
-    ) -> Page[RequestRead]:
+    def list_for_assignee(self, assignee_id: int, *, limit: int, offset: int) -> Page[RequestRead]:
         items = self._uow.requests.list_by_assignee(assignee_id, limit=limit, offset=offset)
         total = self._uow.requests.count_by_assignee(assignee_id)
         return self._page(items, total, limit, offset)
@@ -189,8 +185,12 @@ class RequestService:
                     request_id=req.id,
                     user_id=current_user.id,
                     action=RequestAction.STATUS_CHANGED.value,
-                    old_value=old_status.value if isinstance(old_status, RequestStatus) else str(old_status),
-                    new_value=req.status.value if isinstance(req.status, RequestStatus) else str(req.status),
+                    old_value=old_status.value
+                    if isinstance(old_status, RequestStatus)
+                    else str(old_status),
+                    new_value=req.status.value
+                    if isinstance(req.status, RequestStatus)
+                    else str(req.status),
                     client_ip=client_ip,
                     user_agent=user_agent,
                     comment=payload.comment,
@@ -233,8 +233,12 @@ class RequestService:
                     event_type="request.status_changed",
                     payload={
                         "request_id": req.id,
-                        "from": old_status.value if isinstance(old_status, RequestStatus) else str(old_status),
-                        "to": req.status.value if isinstance(req.status, RequestStatus) else str(req.status),
+                        "from": old_status.value
+                        if isinstance(old_status, RequestStatus)
+                        else str(old_status),
+                        "to": req.status.value
+                        if isinstance(req.status, RequestStatus)
+                        else str(req.status),
                         "actor_id": current_user.id,
                     },
                 )
@@ -244,7 +248,11 @@ class RequestService:
         self._uow.refresh(req)
         if payload.status is not None and req.status != old_status:
             requests_status_changed_total.labels(
-                from_status=old_status.value if isinstance(old_status, RequestStatus) else str(old_status),
-                to_status=req.status.value if isinstance(req.status, RequestStatus) else str(req.status),
+                from_status=old_status.value
+                if isinstance(old_status, RequestStatus)
+                else str(old_status),
+                to_status=req.status.value
+                if isinstance(req.status, RequestStatus)
+                else str(req.status),
             ).inc()
         return req

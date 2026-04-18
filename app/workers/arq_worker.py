@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import os
 from datetime import datetime
+from typing import ClassVar
 
 from arq.connections import RedisSettings
 from arq.cron import cron
@@ -53,10 +54,10 @@ async def on_shutdown(ctx: dict) -> None:
 
 
 class WorkerSettings:
-    redis_settings = RedisSettings.from_dsn(
+    redis_settings: ClassVar = RedisSettings.from_dsn(
         os.getenv("REDIS_URL", "redis://redis:6379/0")
     )
-    cron_jobs = [
+    cron_jobs: ClassVar = [
         # каждую секунду
         cron(drain_outbox, second=set(range(0, 60))),
     ]

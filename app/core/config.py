@@ -11,7 +11,7 @@ from __future__ import annotations
 from enum import Enum
 from typing import List
 
-from pydantic import Field, SecretStr, field_validator
+from pydantic import SecretStr, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 

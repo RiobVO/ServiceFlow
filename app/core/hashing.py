@@ -34,10 +34,10 @@ _hasher = PasswordHasher()
 class IssuedKey:
     """Результат выпуска нового API-ключа."""
 
-    raw: str          # показать клиенту один раз
-    prefix: str       # хранить в БД
-    last4: str        # хранить в БД
-    hash: str         # хранить в БД
+    raw: str  # показать клиенту один раз
+    prefix: str  # хранить в БД
+    last4: str  # хранить в БД
+    hash: str  # хранить в БД
 
 
 def generate_api_key() -> IssuedKey:

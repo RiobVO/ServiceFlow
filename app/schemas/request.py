@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, Field, ConfigDict, field_validator, UUID4
+from pydantic import UUID4, BaseModel, ConfigDict, Field, field_validator
 
 from app.core.enums import RequestStatus
 
@@ -44,14 +44,11 @@ class RequestRead(BaseModel):
     updated_at: datetime
 
 
-
 class RequestStatusUpdate(BaseModel):
     status: RequestStatus
     assignee_id: int | None = Field(default=None, ge=1)
     comment: str | None = Field(
         default=None,
         max_length=500,
-        description="Комментарий при изменении статуса (обязательно при CANCEL)"
+        description="Комментарий при изменении статуса (обязательно при CANCEL)",
     )
-
-

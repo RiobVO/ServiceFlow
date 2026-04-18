@@ -43,6 +43,7 @@ def _seed_admin(_app_with_db):
 @pytest.fixture
 def case_hook(_seed_admin):
     """Проставляем валидный X-API-Key на каждый сгенерированный запрос."""
+
     def _hook(case):
         case.headers = dict(case.headers or {})
         case.headers["X-API-Key"] = _seed_admin.raw_api_key
@@ -61,9 +62,9 @@ def test_api_does_not_500(schema, case_hook):
         response = case.call()
         # Никаких 500 — всё должно быть либо осмысленным ответом, либо
         # Problem Details с корректным статусом и content-type.
-        assert response.status_code < 500, (
-            f"Got {response.status_code} on {case.method} {case.path}: {response.text}"
-        )
+        assert (
+            response.status_code < 500
+        ), f"Got {response.status_code} on {case.method} {case.path}: {response.text}"
         if response.status_code >= 400 and response.headers.get("content-type", "").startswith(
             "application/problem+json"
         ):

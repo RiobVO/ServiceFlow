@@ -86,7 +86,7 @@ class RequestContextMiddleware(BaseHTTPMiddleware):
             try:
                 response_headers = response.headers  # type: ignore[name-defined]
                 response_headers[REQUEST_ID_HEADER] = request_id
-            except Exception:
+            except Exception:  # noqa: S110 - response мог не быть присвоен (upstream raise)
                 pass
             request_id_ctx.reset(token)
 

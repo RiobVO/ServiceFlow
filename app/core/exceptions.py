@@ -35,6 +35,7 @@ class DomainError(Exception):
 
 # ---------- 400 BAD REQUEST ----------
 
+
 class ValidationFailed(DomainError):
     code = "validation_failed"
     http_status = 400
@@ -71,6 +72,7 @@ class InProgressRequiresAssignee(BusinessRuleViolation):
 
 # ---------- 401 UNAUTHORIZED ----------
 
+
 class AuthenticationError(DomainError):
     code = "authentication_error"
     http_status = 401
@@ -88,6 +90,7 @@ class InvalidApiKey(AuthenticationError):
 
 
 # ---------- 403 FORBIDDEN ----------
+
 
 class PermissionDenied(DomainError):
     code = "permission_denied"
@@ -112,6 +115,7 @@ class AgentOrAdminOnly(PermissionDenied):
 
 # ---------- 404 NOT FOUND ----------
 
+
 class NotFoundError(DomainError):
     code = "not_found"
     http_status = 404
@@ -134,6 +138,7 @@ class AssigneeNotFound(NotFoundError):
 
 
 # ---------- 409 CONFLICT ----------
+
 
 class ConflictError(DomainError):
     code = "conflict"
