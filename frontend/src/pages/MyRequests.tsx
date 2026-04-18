@@ -1,119 +1,135 @@
 import { useEffect, useState } from 'react';
-import { api } from '../services/api';
-import { StatusBadge } from '../components/StatusBadge';
+import { Plus } from 'lucide-react';
+import {
+  Button,
+  Card,
+  CardHeader,
+  Empty,
+  ErrorMessage,
+  Field,
+  Input,
+  PageHeader,
+  Textarea,
+} from '../components/primitives';
+import { api, ApiError } from '../services/api';
 import type { ServiceRequest, User } from '../types';
+import { RequestTable } from './Dashboard';
 
-interface Props { apiKey: string; user: User | null; }
+interface Props {
+  apiKey: string;
+  user: User | null;
+}
 
-export function MyRequests({ apiKey, user: _user }: Props) {
+export function MyRequests({ apiKey }: Props) {
   const [requests, setRequests] = useState<ServiceRequest[]>([]);
-  const [loading, setLoading]   = useState(true);
-  const [title, setTitle]       = useState('');
-  const [desc, setDesc]         = useState('');
+  const [loading, setLoading] = useState(true);
+  const [title, setTitle] = useState('');
+  const [desc, setDesc] = useState('');
   const [creating, setCreating] = useState(false);
-  const [error, setError]       = useState('');
+  const [error, setError] = useState<string | null>(null);
 
   const load = () => {
     setLoading(true);
-    api.listMyRequests(apiKey)
+    api
+      .listMyRequests(apiKey)
       .then((page) => setRequests(page.items))
       .catch(() => {})
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { if (apiKey) load(); }, [apiKey]);
+  useEffect(() => {
+    if (apiKey) load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [apiKey]);
 
   const submit = async () => {
-    if (!title.trim()) { setError('Введите название'); return; }
+    if (!title.trim()) {
+      setError('Введите название.');
+      return;
+    }
     setCreating(true);
-    setError('');
+    setError(null);
     try {
-      const r = await api.createRequest(apiKey, { title: title.trim(), description: desc.trim() || undefined });
-      setRequests(prev => [r, ...prev]);
+      const r = await api.createRequest(apiKey, {
+        title: title.trim(),
+        description: desc.trim() || undefined,
+      });
+      setRequests((prev) => [r, ...prev]);
       setTitle('');
       setDesc('');
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Ошибка');
+    } catch (err) {
+      const msg = err instanceof ApiError ? err.problem.detail : 'Не удалось создать заявку.';
+      setError(msg);
     } finally {
       setCreating(false);
     }
   };
 
+  const clear = () => {
+    setTitle('');
+    setDesc('');
+    setError(null);
+  };
+
   return (
-    <div className="page fade-in">
-      <div className="page-header">
-        <div>
-          <div className="page-title">Мои заявки</div>
-          <div className="page-subtitle">Создавайте и отслеживайте свои запросы</div>
-        </div>
-      </div>
+    <div className="sf-page">
+      <PageHeader
+        title="Мои заявки"
+        subtitle="Создавайте и отслеживайте свои запросы"
+      />
 
-      <div className="panel">
-        <div className="panel-title">Новая заявка</div>
-        <div className="form-group">
-          <label className="form-label">Название</label>
-          <input
-            className="input"
-            placeholder="Опишите проблему кратко…"
-            value={title}
-            onChange={e => setTitle(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && submit()}
-          />
-        </div>
-        <div className="form-group">
-          <label className="form-label">Описание</label>
-          <textarea
-            className="input"
-            placeholder="Подробности (необязательно)…"
-            value={desc}
-            onChange={e => setDesc(e.target.value)}
-          />
-        </div>
-        {error && <div className="error-msg">⚠ {error}</div>}
-        <button className="btn btn-primary" onClick={submit} disabled={creating}>
-          {creating ? 'Создание…' : '+ Создать заявку'}
-        </button>
-      </div>
-
-      <div className="card">
-        <div className="card-header">
-          <div className="card-title">История</div>
-        </div>
-        {loading ? (
-          <div className="empty"><div className="text-muted">Загрузка…</div></div>
-        ) : requests.length === 0 ? (
-          <div className="empty">
-            <div className="empty-icon">◈</div>
-            У вас пока нет заявок
+      <Card elevated>
+        <div className="sf-card__body">
+          <div
+            className="sf-serif"
+            style={{
+              fontSize: 18,
+              fontWeight: 500,
+              color: 'var(--sf-ink)',
+              letterSpacing: '-0.005em',
+              marginBottom: 14,
+            }}
+          >
+            Новая заявка
           </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <Field label="Название">
+              <Input
+                placeholder="Опишите проблему кратко…"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+              />
+            </Field>
+            <Field label="Описание">
+              <Textarea
+                placeholder="Подробности (необязательно)…"
+                value={desc}
+                onChange={(e) => setDesc(e.target.value)}
+              />
+            </Field>
+            {error ? <ErrorMessage>{error}</ErrorMessage> : null}
+            <div style={{ display: 'flex', gap: 10 }}>
+              <Button icon={Plus} onClick={submit} disabled={creating}>
+                {creating ? 'Создание…' : 'Создать заявку'}
+              </Button>
+              <Button variant="ghost" onClick={clear}>
+                Очистить
+              </Button>
+            </div>
+          </div>
+        </div>
+      </Card>
+
+      <Card>
+        <CardHeader title="История" />
+        {loading ? (
+          <Empty>Загрузка…</Empty>
+        ) : requests.length === 0 ? (
+          <Empty>У вас пока нет заявок.</Empty>
         ) : (
-          <table>
-            <thead>
-              <tr>
-                <th>ID</th>
-                <th>Название</th>
-                <th>Статус</th>
-                <th>Создана</th>
-              </tr>
-            </thead>
-            <tbody>
-              {requests.map(r => (
-                <tr key={r.id}>
-                  <td className="td-mono">#{r.id}</td>
-                  <td>
-                    <div className="td-bold">{r.title}</div>
-                    {r.description && <div className="text-muted text-sm">{r.description}</div>}
-                  </td>
-                  <td><StatusBadge status={r.status} /></td>
-                  <td className="text-muted text-sm">
-                    {new Date(r.created_at).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <RequestTable rows={requests} />
         )}
-      </div>
+      </Card>
     </div>
   );
 }

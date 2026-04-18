@@ -1,24 +1,39 @@
 import { useEffect, useState } from 'react';
-import { api } from '../services/api';
+import { Check, RefreshCw } from 'lucide-react';
 import { StatusBadge } from '../components/StatusBadge';
+import {
+  Button,
+  Card,
+  Empty,
+  PageHeader,
+  formatTime,
+} from '../components/primitives';
+import { api } from '../services/api';
 import type { ServiceRequest, User } from '../types';
 
-interface Props { apiKey: string; user: User | null; }
+interface Props {
+  apiKey: string;
+  user: User | null;
+}
 
 export function Queue({ apiKey, user }: Props) {
-  const [queue, setQueue]     = useState<ServiceRequest[]>([]);
+  const [queue, setQueue] = useState<ServiceRequest[]>([]);
   const [loading, setLoading] = useState(true);
-  const [taking, setTaking]   = useState<number | null>(null);
+  const [taking, setTaking] = useState<number | null>(null);
 
   const load = () => {
     setLoading(true);
-    api.listQueue(apiKey)
+    api
+      .listQueue(apiKey)
       .then((page) => setQueue(page.items))
       .catch(() => {})
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { if (apiKey) load(); }, [apiKey]);
+  useEffect(() => {
+    if (apiKey) load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [apiKey]);
 
   const takeRequest = async (r: ServiceRequest) => {
     if (!user) return;
@@ -29,68 +44,69 @@ export function Queue({ apiKey, user }: Props) {
         assignee_id: user.id,
         comment: 'Взято в работу',
       });
-      setQueue(prev => prev.filter(x => x.id !== updated.id));
+      setQueue((prev) => prev.filter((x) => x.id !== updated.id));
     } finally {
       setTaking(null);
     }
   };
 
   return (
-    <div className="page fade-in">
-      <div className="page-header">
-        <div>
-          <div className="page-title">Очередь</div>
-          <div className="page-subtitle">{queue.length} заявок ожидают обработки</div>
-        </div>
-        <button className="btn btn-ghost btn-sm" onClick={load}>⟳ Обновить</button>
-      </div>
+    <div className="sf-page">
+      <PageHeader
+        title="Очередь"
+        subtitle={`${queue.length} заявок ожидают обработки`}
+        right={
+          <Button variant="ghost" size="sm" icon={RefreshCw} onClick={load}>
+            Обновить
+          </Button>
+        }
+      />
 
-      <div className="card">
+      <Card>
         {loading ? (
-          <div className="empty"><div className="text-muted">Загрузка…</div></div>
+          <Empty>Загрузка…</Empty>
         ) : queue.length === 0 ? (
-          <div className="empty">
-            <div className="empty-icon">✓</div>
-            Очередь пуста — всё обработано
-          </div>
+          <Empty icon={Check}>Очередь пуста. Хороший день.</Empty>
         ) : (
-          <table>
+          <table className="sf-table">
             <thead>
               <tr>
-                <th>ID</th>
+                <th style={{ width: 76 }}>ID</th>
                 <th>Название</th>
-                <th>Статус</th>
-                <th>Создана</th>
-                <th>Действие</th>
+                <th style={{ width: 130 }}>Статус</th>
+                <th style={{ width: 130 }}>Создана</th>
+                <th style={{ width: 110 }}>Действие</th>
               </tr>
             </thead>
             <tbody>
-              {queue.map(r => (
+              {queue.map((r) => (
                 <tr key={r.id}>
-                  <td className="td-mono">#{r.id}</td>
+                  <td className="sf-td--mono">#{r.id}</td>
                   <td>
-                    <div className="td-bold">{r.title}</div>
-                    {r.description && <div className="text-muted text-sm">{r.description}</div>}
-                  </td>
-                  <td><StatusBadge status={r.status} /></td>
-                  <td className="text-muted text-sm">
-                    {new Date(r.created_at).toLocaleString('ru-RU', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+                    <div className="sf-row-title">{r.title}</div>
+                    {r.description ? (
+                      <div className="sf-row-sub">{r.description}</div>
+                    ) : null}
                   </td>
                   <td>
-                    <button
-                      className="btn btn-primary btn-sm"
+                    <StatusBadge status={r.status} />
+                  </td>
+                  <td className="sf-td--muted">{formatTime(r.created_at)}</td>
+                  <td>
+                    <Button
+                      size="sm"
                       disabled={taking === r.id}
                       onClick={() => takeRequest(r)}
                     >
                       {taking === r.id ? '…' : 'Взять'}
-                    </button>
+                    </Button>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         )}
-      </div>
+      </Card>
     </div>
   );
 }
