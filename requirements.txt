@@ -9,7 +9,7 @@ psycopg[binary]
 alembic==1.18.0
 structlog==24.4.0
 argon2-cffi==23.1.0
-slowapi==0.1.9
+slowapi==0.1.10
 
 # Observability
 prometheus-fastapi-instrumentator==7.0.0
