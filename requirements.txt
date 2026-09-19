@@ -8,7 +8,7 @@ email-validator==2.2.0
 psycopg[binary]
 alembic==1.18.0
 structlog==24.4.0
-argon2-cffi==23.1.0
+argon2-cffi==25.1.0
 slowapi==0.1.9
 
 # Observability
